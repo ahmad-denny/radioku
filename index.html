@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Radio Player PRO</title>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#070b14"><meta name="color-scheme" content="dark"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Radio PRO"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 96 96%27%3E%3Crect width=%2796%27 height=%2796%27 rx=%2720%27 fill=%27%2316234a%27/%3E%3Ctext x=%2748%27 y=%2768%27 font-size=%2756%27 text-anchor=%27middle%27%3E%F0%9F%93%BB%3C/text%3E%3C/svg%3E"><title>Radio Player PRO</title>
 <style>
 :root{--bg:#070b14;--panel:#111a2a;--panel2:#17243a;--line:#273a55;--cyan:#4ce2e8;--blue:#5d8cff;--lime:#b3ff68;--text:#eaf4ff;--muted:#92a7c2;--orange:#ffb55e}
 *{box-sizing:border-box}body{margin:0;color:var(--text);font-family:Inter,Segoe UI,system-ui,sans-serif;background:radial-gradient(ellipse at 45% -10%,#193b59 0,#09101d 44%,#050810 100%);min-height:100vh}
@@ -14,75 +14,283 @@ main{max-width:1250px;margin:auto;padding:20px 16px 145px}.topgrid{display:grid;
 body.minimized main{display:none}body.minimized header{border-bottom:0}body.minimized .bottomplayer{padding:20px}
 @media(max-width:980px){.layout{grid-template-columns:1fr}.sidebar{display:grid;grid-template-columns:1fr 1fr}.sidebar .eqpanel{grid-column:1/-1}.topgrid{grid-template-columns:1fr}}
 @media(max-width:650px){header{padding:13px 14px}.brand p{display:none}main{padding:15px 12px 145px}.sidebar{display:flex}.playerinner{grid-template-columns:1fr auto}.rightcontrols{display:none}.grid{grid-template-columns:1fr 1fr}.station{padding:9px;gap:8px}.cover{width:45px;height:45px}.stationbuttons button{padding:5px 7px}.digital{font-size:29px}.eq{gap:2px}.eqband input{height:85px}.playerinner{gap:8px}.now .cover{width:39px;height:39px}}
-</style></head><body>
+</style><style>
+/* ===== Mobile & touch enhancements ===== */
+html{-webkit-text-size-adjust:100%}
+body{min-height:100dvh;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+button,select,input,.station{touch-action:manipulation}
+button:active{transform:scale(.96)}
+header{padding-top:calc(12px + env(safe-area-inset-top));padding-left:max(16px,calc((100vw - 1250px)/2),env(safe-area-inset-left));padding-right:max(16px,calc((100vw - 1250px)/2),env(safe-area-inset-right))}
+.bottomplayer{padding-bottom:calc(11px + env(safe-area-inset-bottom))}
+.station{cursor:pointer}.station.playing{border-color:var(--lime);box-shadow:0 0 0 1px #b3ff6840}
+.nowtext small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.viewtabs{display:flex;gap:8px;margin-top:16px;overflow-x:auto}
+.viewtabs button{padding:7px 14px;border-radius:999px;font-size:13px;white-space:nowrap}
+.viewtabs button.on{background:linear-gradient(120deg,#246c91,#4d66c5);border-color:transparent}
+.viewtabs b{color:var(--cyan);font-weight:600;margin-left:4px}
+#more{display:block;margin:14px auto 0}
+.alarmrow{grid-template-columns:1fr auto auto}
+.coarse-only{display:none}
+.mnav{display:none}
+@media(hover:none){button:hover{transform:none;border-color:#2c405c}.primary:hover{border:0}}
+@media(pointer:coarse){
+ input,select{font-size:16px}
+ button,select,input:not([type=range]):not([type=checkbox]){min-height:44px}
+ input[type=checkbox]{width:22px;height:22px}
+ .transport button{width:44px;height:44px}.transport .big{width:52px;height:52px}
+ .eqband input{width:28px}
+ .coarse-only{display:block}
+}
+@media(max-width:650px){
+ #miniBtn,.panel.stats,.viewtabs{display:none}
+ header,.bottomplayer{backdrop-filter:none;background:#070b14f2}
+ header{padding-top:calc(9px + env(safe-area-inset-top));padding-bottom:9px}
+ .logo{width:38px;height:38px;font-size:20px}.brand h1{font-size:17px}
+ main{padding:12px 12px calc(148px + env(safe-area-inset-bottom))}
+ .layout{margin-top:10px}
+ .sectionhead{flex-direction:column;align-items:stretch;margin:12px 0 8px}
+ .grid{grid-template-columns:1fr}
+ .station{padding:11px;gap:11px}
+ .cover{width:52px;height:52px}
+ .stationbuttons{gap:8px}.stationbuttons button{padding:0 14px;min-height:40px;font-size:13px}
+ .fav{width:44px!important}
+ .sidebar{display:none}
+ body[data-view=tools] .sidebar{display:flex}
+ body[data-view=tools] .topgrid,body[data-view=tools] .leftcol{display:none}
+ .eq{height:175px}.eqband input{height:118px}
+ .bottomplayer{padding:8px 10px 0}
+ .playerinner{grid-template-columns:minmax(0,1fr) auto;gap:8px}
+ .transport{gap:6px}.transport #stop,.transport #retry{display:none}
+ .mnav{display:grid;grid-template-columns:repeat(4,1fr);margin:6px -10px 0;padding-bottom:env(safe-area-inset-bottom);border-top:1px solid #1d2f44}
+ .mnav button{background:none;border:0;border-radius:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 0;font-size:11px;color:var(--muted);min-height:52px}
+ .mnav button i{font-style:normal;font-size:19px;line-height:1}
+ .mnav button.on{color:var(--cyan)}
+ .toast{top:auto;bottom:calc(142px + env(safe-area-inset-bottom));max-width:90vw;text-align:center}
+}
+@media(max-height:480px) and (orientation:landscape){
+ .mnav button span{display:none}.mnav button{min-height:40px}
+ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+ .toast{bottom:calc(100px + env(safe-area-inset-bottom))}
+}
+</style></head><body data-view="all">
 <header><div class="brand"><div class="logo">📻</div><div><h1>RADIO PLAYER PRO</h1><p>Internet tuner · audio lab</p></div></div><button id="miniBtn" class="pill">▱ Mini Player</button></header>
 <main>
-<div class="topgrid"><section class="panel"><div class="eyebrow">Station discovery</div><h2>Jelajahi siaran radio</h2><p>Radio lokal, internasional, genre dan negara. Database Radio Browser.</p><div class="searchline"><input id="city" value="Medan" placeholder="Kota / nama radio"><button class="primary" id="searchCity">Cari</button><button id="gps">◎ GPS</button><select id="country"><option value="">🌐 Semua negara</option></select></div><div class="status" id="status">Memuat stasiun…</div></section><section class="panel stats"><div><strong id="total">0</strong><span>Station</span></div><div><strong id="favtotal">0</strong><span>Favorit</span></div><div><strong id="recenttotal">0</strong><span>History</span></div></section></div>
-<div class="layout"><section class="leftcol"><div class="sectionhead"><h3>Daftar stasiun</h3><div class="filterbar"><input id="filter" placeholder="Filter radio…"><select id="sort"><option value="pop">Popular</option><option value="name">Nama</option><option value="distance">Jarak</option></select></div></div><div class="grid" id="list"></div><div class="empty" id="empty" hidden>Radio tidak ditemukan.</div></section>
+<div class="topgrid"><section class="panel"><div class="eyebrow">Station discovery</div><h2>Jelajahi siaran radio</h2><p>Radio lokal, internasional, genre dan negara. Database Radio Browser.</p><div class="searchline"><input id="city" type="search" value="Medan" placeholder="Kota / nama radio" enterkeyhint="search" autocomplete="off"><button class="primary" id="searchCity">Cari</button><button id="gps">◎ GPS</button><select id="country"><option value="">🌐 Semua negara</option></select></div><div class="status" id="status">Memuat stasiun…</div></section><section class="panel stats"><div><strong id="total">0</strong><span>Station</span></div><div><strong id="favtotal">0</strong><span>Favorit</span></div><div><strong id="recenttotal">0</strong><span>History</span></div></section></div>
+<div class="layout"><section class="leftcol"><div class="viewtabs" id="viewtabs"><button data-view="all" class="on">Semua</button><button data-view="fav">♥ Favorit<b id="favTab">0</b></button><button data-view="recent">🕘 Riwayat<b id="recTab">0</b></button></div><div class="sectionhead"><h3 id="listTitle">Daftar stasiun</h3><div class="filterbar"><input id="filter" placeholder="Filter radio…"><select id="sort"><option value="pop">Popular</option><option value="name">Nama</option><option value="distance">Jarak</option></select></div></div><div class="grid" id="list"></div><button id="more" class="pill" hidden>Tampilkan lebih banyak</button><div class="empty" id="empty" hidden>Radio tidak ditemukan.</div></section>
 <aside class="sidebar">
 <section class="tuner"><div class="tunerlabel">DIGITAL TUNER / STREAM</div><div class="digital" id="freq">--:--:--</div><div class="dial"></div><div class="dialtext"><span>LOW</span><span>FM / ONLINE</span><span>HIGH</span></div><canvas id="visualizer" class="viz" width="600" height="180"></canvas><div class="miniinfo"><div class="cover" id="tunerCover">📻</div><div><strong id="tunerTitle">Belum ada siaran</strong><small id="tunerSubtitle">Pilih station untuk tuning</small></div></div></section>
-<section class="panel eqpanel"><div class="eyebrow">Sound shaping</div><h3 style="margin:4px 0">Equalizer 10-band</h3><div class="eq" id="eq"></div><div class="eqcontrols"><select id="preset"><option value="flat">Flat</option><option value="bass">Bass Boost</option><option value="treble">Treble Boost</option><option value="vocal">Vocal</option><option value="rock">Rock</option><option value="jazz">Jazz</option></select><button id="eqReset">Reset</button></div><p id="eqNote" style="font-size:11px;margin-top:8px">EQ aktif jika browser mengizinkan pemrosesan audio. Jika tidak, player tetap berfungsi normal.</p></section>
-<section class="panel"><div class="eyebrow">Automation</div><h3 style="margin:4px 0">Sleep Timer</h3><div class="timerrow"><select id="sleep"><option value="">Off</option><option value="15">15 menit</option><option value="30">30 menit</option><option value="45">45 menit</option><option value="60">60 menit</option><option value="90">90 menit</option><option value="120">120 menit</option></select><button id="sleepStart">Set Timer</button></div><div class="status" id="sleepStatus">Timer tidak aktif.</div><hr style="border-color:#26374e;margin:14px 0"><h3 style="margin:4px 0">Alarm Radio</h3><div class="alarmrow"><input type="time" id="alarmTime"><button id="alarmSet">Set Alarm</button></div><label class="checkline"><input type="checkbox" id="alarmDaily"> Ulang setiap hari</label><div class="status" id="alarmStatus">Alarm tidak aktif.</div></section>
+<section class="panel eqpanel"><div class="eyebrow">Sound shaping</div><h3 style="margin:4px 0">Equalizer 10-band</h3><label class="checkline"><input type="checkbox" id="eqOn"> Aktifkan EQ &amp; spectrum</label><p class="coarse-only" style="font-size:11px;margin:4px 0 0">Di HP, EQ memproses audio lewat browser: lebih boros baterai dan di sebagian perangkat (terutama iPhone) suara bisa berhenti saat layar mati. Matikan jika ingin dengar radio dengan layar terkunci.</p><div class="eq" id="eq"></div><div class="eqcontrols"><select id="preset"><option value="flat">Flat</option><option value="bass">Bass Boost</option><option value="treble">Treble Boost</option><option value="vocal">Vocal</option><option value="rock">Rock</option><option value="jazz">Jazz</option></select><button id="eqReset">Reset</button></div><p id="eqNote" style="font-size:11px;margin-top:8px">EQ aktif jika browser mengizinkan pemrosesan audio. Jika tidak, player tetap berfungsi normal.</p></section>
+<section class="panel"><div class="eyebrow">Automation</div><h3 style="margin:4px 0">Sleep Timer</h3><div class="timerrow"><select id="sleep"><option value="">Off</option><option value="15">15 menit</option><option value="30">30 menit</option><option value="45">45 menit</option><option value="60">60 menit</option><option value="90">90 menit</option><option value="120">120 menit</option></select><button id="sleepStart">Set Timer</button></div><div class="status" id="sleepStatus">Timer tidak aktif.</div><hr style="border-color:#26374e;margin:14px 0"><h3 style="margin:4px 0">Alarm Radio</h3><div class="alarmrow"><input type="time" id="alarmTime"><button id="alarmSet">Set Alarm</button><button id="alarmOff" title="Matikan alarm" aria-label="Matikan alarm">✕</button></div><label class="checkline"><input type="checkbox" id="alarmDaily"> Ulang setiap hari</label><label class="checkline"><input type="checkbox" id="wakeLock"> Layar tetap menyala</label><p style="font-size:11px;margin:6px 0 0">Alarm hanya berbunyi jika halaman ini tetap terbuka. Aktifkan &ldquo;Layar tetap menyala&rdquo; dan biarkan HP di charger.</p><div class="status" id="alarmStatus">Alarm tidak aktif.</div></section>
 </aside></div>
 </main>
-<div class="bottomplayer"><div class="playerinner"><div class="now"><div class="cover" id="nowCover">📻</div><div class="nowtext"><strong id="nowTitle">Pilih radio untuk mulai</strong><small id="nowMeta">Radio Player PRO</small></div></div><div class="transport"><button id="stop" title="Stop">■</button><button class="big" id="play">▶</button><button id="retry" title="Reconnect">↻</button></div><div class="rightcontrols">🔊<input id="volume" type="range" min="0" max="1" step=".01" value=".8"><button id="mute">♪</button></div></div></div><div class="toast" id="toast"></div>
+<div class="bottomplayer"><div class="playerinner"><div class="now"><div class="cover" id="nowCover">📻</div><div class="nowtext"><strong id="nowTitle">Pilih radio untuk mulai</strong><small id="nowMeta">Radio Player PRO</small></div></div><div class="transport"><button id="prev" title="Sebelumnya" aria-label="Station sebelumnya">⏮</button><button id="stop" title="Stop">■</button><button class="big" id="play" aria-label="Play / Jeda">▶</button><button id="retry" title="Sambung ulang">↻</button><button id="next" title="Berikutnya" aria-label="Station berikutnya">⏭</button></div><div class="rightcontrols">🔊<input id="volume" type="range" min="0" max="1" step=".01" value=".8"><button id="mute">♪</button></div></div><nav class="mnav" id="mnav"><button data-view="all" class="on"><i>📻</i><span>Stasiun</span></button><button data-view="fav"><i>♥</i><span>Favorit</span></button><button data-view="recent"><i>🕘</i><span>Riwayat</span></button><button data-view="tools"><i>🎛</i><span>Alat</span></button></nav></div><div class="toast" id="toast"></div>
 <script>
 const $=x=>document.querySelector(x);
-let audio=new Audio(),muted=false,srcNode=null,inputNode=null;const corsCache={};
-let stations=[],current=null,tab="all",geo=null,sleepId=null,alarm=null,alarmInterval=null,ctx=null,source=null,analyser=null,eqNodes=[],vizRAF=null;
-let fav=JSON.parse(localStorage.getItem("rpro_fav")||"[]"),history=JSON.parse(localStorage.getItem("rpro_hist")||"[]");
+const PAGE=60,coarse=matchMedia("(pointer:coarse)").matches;
+const jget=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v??d}catch(e){return d}};
+const jset=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let audio=new Audio(),muted=false,srcNode=null,inputNode=null,ctx=null,analyser=null,eqNodes=[],eqActive=false,vizRunning=false;
+let stations=[],current=null,view="all",geo=null,limit=PAGE,curList=[],reqId=0,hostIdx=0;
+let wantPlay=false,retryN=0,retryT=null,stallT=null,stateTxt="",metaTxt="",toastT=null,sleepEnd=0,alarm=null,wakeSentinel=null;
+let fav=jget("rpro_fav",[]),hist=jget("rpro_hist",[]),saved=jget("rpro_saved",{}),eqOn=jget("rpro_eq",!coarse);
+const corsCache={};
 const bands=[60,170,310,600,1000,3000,6000,12000,14000,16000],labels=["60","170","310","600","1k","3k","6k","12k","14k","16k"];
-function say(s){$("#status").textContent=s}function toast(s){let t=$("#toast");t.textContent=s;t.style.display="block";setTimeout(()=>t.style.display="none",2600)}
+const HOSTS=["de1","nl1","at1"].map(h=>`https://${h}.api.radio-browser.info/json`);
+const ICON="data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect width="96" height="96" rx="20" fill="#16234a"/><text x="48" y="68" font-size="56" text-anchor="middle">📻</text></svg>');
+
+/* ---------- util ---------- */
+function say(s){$("#status").textContent=s}
+function toast(s){const t=$("#toast");t.textContent=s;t.style.display="block";clearTimeout(toastT);toastT=setTimeout(()=>t.style.display="none",2800)}
 function esc(s){return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function norm(s){return {...s,id:s.stationuuid,name:s.name||"Unnamed Radio",url:s.url_resolved||s.url,genre:s.tags||"",city:s.city||"",country:s.country||"",flag:s.countrycode||"",logo:s.favicon||""}}
-async function fetchList(url,msg){say(msg);try{let r=await fetch(url);if(!r.ok)throw Error();stations=(await r.json()).map(norm);render();say(`${stations.length} stasiun ditemukan.`)}catch(e){say("Gagal mengakses database radio. Periksa internet.");toast("Database Radio Browser tidak bisa diakses.")}}
-const base="https://de1.api.radio-browser.info/json/stations";
-async function byCity(){let city=$("#city").value.trim();if(!city){toast("Isi nama kota atau radio.");return}fetchList(`${base}/search?name=${encodeURIComponent(city)}&limit=200&order=clickcount&hidebroken=true`,`Mencari radio ${city}…`)}
-async function byCountry(code){if(!code)return byCity();fetchList(`${base}/search?countrycode=${encodeURIComponent(code)}&limit=200&order=clickcount&hidebroken=true`,"Mengambil radio negara…")}
-function loadCountries(){fetch("https://de1.api.radio-browser.info/json/countries").then(r=>r.json()).then(a=>{$("#country").innerHTML='<option value="">🌐 Semua negara</option>'+a.filter(x=>x.stationcount>0).sort((a,b)=>a.name.localeCompare(b.name)).map(x=>`<option value="${esc(x.iso_3166_1)}">${esc(x.name)} (${x.stationcount})</option>`).join("")}).catch(()=>{})}
-function render(){let q=$("#filter").value.toLowerCase(),list=stations.filter(s=>`${s.name} ${s.city} ${s.country} ${s.genre}`.toLowerCase().includes(q));if($("#sort").value==="name")list.sort((a,b)=>a.name.localeCompare(b.name));else if($("#sort").value==="distance"&&geo)list.sort((a,b)=>(a.distance||99999)-(b.distance||99999));else list.sort((a,b)=>(b.clickcount||0)-(a.clickcount||0));$("#list").innerHTML=list.map(s=>`<article class="station"><div class="cover">${s.logo?`<img src="${esc(s.logo)}" onerror="this.parentElement.textContent='📻'">`:"📻"}</div><div class="stationinfo"><h4 title="${esc(s.name)}">${esc(s.name)}</h4><small>${esc(s.city||s.country||"Online")} · ${esc(s.genre.slice(0,55)||"Genre unknown")}</small><div class="stationbuttons"><button class="primary" onclick="tune('${esc(s.id)}')">${current?.id===s.id&&!audio.paused?"❚❚":"▶ Tune"}</button><button class="fav" onclick="favorite('${esc(s.id)}')">${fav.includes(s.id)?"♥":"♡"}</button><button onclick="share('${esc(s.id)}')">↗</button></div></div></article>`).join("");$("#empty").hidden=list.length>0;$("#total").textContent=stations.length;$("#favtotal").textContent=fav.length;$("#recenttotal").textContent=history.length}
-function lookup(id){return stations.find(s=>s.id===id)}
+const slim=s=>({id:s.id,name:s.name,url:s.url,genre:s.genre,city:s.city,country:s.country,flag:s.flag,logo:s.logo,clickcount:s.clickcount||0});
+function lookup(id){return stations.find(s=>s.id===id)||saved[id]||null}
+function keep(s){saved[s.id]=slim(s);const ids=new Set([...fav,...hist,s.id]);Object.keys(saved).forEach(k=>{if(!ids.has(k))delete saved[k]});jset("rpro_saved",saved)}
+
+/* ---------- Radio Browser API (mirror + timeout) ---------- */
+async function api(path){
+ for(let k=0;k<HOSTS.length;k++){
+  const i=(hostIdx+k)%HOSTS.length,c=new AbortController(),t=setTimeout(()=>c.abort(),10000);
+  try{const r=await fetch(HOSTS[i]+path,{signal:c.signal});if(!r.ok)throw 0;const j=await r.json();hostIdx=i;return j}catch(e){}finally{clearTimeout(t)}
+ }
+ throw Error("api")
+}
+async function fetchList(path,msg){
+ const id=++reqId;say(msg);
+ try{const a=await api(path);if(id!==reqId)return;stations=a.map(norm);limit=PAGE;render();say(`${stations.length} stasiun ditemukan.`)}
+ catch(e){if(id!==reqId)return;say("Gagal mengakses database radio. Periksa internet.");toast("Database Radio Browser tidak bisa diakses.")}
+}
+function goAll(){if(view==="fav"||view==="recent")setView("all")}
+function byCity(){const c=$("#city").value.trim();if(!c){toast("Isi nama kota atau radio.");return}jset("rpro_city",c);goAll();return fetchList(`/stations/search?name=${encodeURIComponent(c)}&limit=200&order=clickcount&reverse=true&hidebroken=true`,`Mencari radio ${c}…`)}
+function byCountry(code){if(!code)return byCity();goAll();return fetchList(`/stations/search?countrycode=${encodeURIComponent(code)}&limit=200&order=clickcount&reverse=true&hidebroken=true`,"Mengambil radio negara…")}
+function loadCountries(){api("/countries").then(a=>{$("#country").innerHTML='<option value="">🌐 Semua negara</option>'+a.filter(x=>x.stationcount>0).sort((a,b)=>a.name.localeCompare(b.name)).map(x=>`<option value="${esc(x.iso_3166_1)}">${esc(x.name)} (${x.stationcount})</option>`).join("")}).catch(()=>{})}
+
+/* ---------- daftar stasiun ---------- */
+function baseList(){if(view==="fav")return fav.map(lookup).filter(Boolean);if(view==="recent")return hist.map(lookup).filter(Boolean);return stations}
+const card=s=>{const on=current?.id===s.id,pl=on&&!audio.paused;return `<article class="station${on?" playing":""}" data-id="${esc(s.id)}"><div class="cover">${s.logo?`<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="${esc(s.logo)}" onerror="this.parentElement.textContent='📻'">`:"📻"}</div><div class="stationinfo"><h4 title="${esc(s.name)}">${esc(s.name)}</h4><small>${esc(s.city||s.country||"Online")} · ${esc((s.genre||"").slice(0,55)||"Genre unknown")}</small><div class="stationbuttons"><button class="primary" data-act="tune">${pl?"❚❚ Jeda":"▶ Putar"}</button><button class="fav" data-act="fav" aria-label="Favorit">${fav.includes(s.id)?"♥":"♡"}</button><button data-act="share" aria-label="Bagikan">↗</button></div></div></article>`};
+function render(){
+ const q=$("#filter").value.toLowerCase(),sort=$("#sort").value;
+ let list=baseList().filter(s=>`${s.name} ${s.city} ${s.country} ${s.genre}`.toLowerCase().includes(q));
+ if(sort==="name")list=[...list].sort((a,b)=>a.name.localeCompare(b.name));
+ else if(view==="all"){list=[...list];if(sort==="distance"&&geo)list.sort((a,b)=>(a.distance??1e12)-(b.distance??1e12));else list.sort((a,b)=>(b.clickcount||0)-(a.clickcount||0))}
+ curList=list;
+ $("#list").innerHTML=list.slice(0,limit).map(card).join("");
+ $("#more").hidden=list.length<=limit;$("#more").textContent=`Tampilkan lebih banyak (${list.length-limit} lagi)`;
+ $("#empty").hidden=list.length>0;$("#empty").textContent=view==="fav"?"Belum ada favorit. Tekan ♡ pada station.":view==="recent"?"Belum ada riwayat putar.":"Radio tidak ditemukan.";
+ $("#total").textContent=stations.length;$("#favtotal").textContent=$("#favTab").textContent=fav.length;$("#recenttotal").textContent=$("#recTab").textContent=hist.length;
+}
+function setView(v){
+ view=v;document.body.dataset.view=v;
+ document.querySelectorAll("button[data-view]").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
+ $("#listTitle").textContent={all:"Daftar stasiun",fav:"Favorit",recent:"Riwayat putar",tools:"Daftar stasiun"}[v];
+ if(v!=="tools"){limit=PAGE;render()}
+ scrollTo({top:0})
+}
+function favorite(id){const s=lookup(id);fav=fav.includes(id)?fav.filter(x=>x!==id):[id,...fav];jset("rpro_fav",fav);if(s&&fav.includes(id))keep(s);render()}
+function share(id){const s=lookup(id);if(!s)return;if(navigator.share){navigator.share({title:s.name,text:s.name,url:s.url}).catch(()=>{});return}navigator.clipboard?.writeText(`${s.name}\n${s.url}`).then(()=>toast("Link radio disalin")).catch(()=>toast(s.url))}
+
+/* ---------- status & media session (kontrol layar kunci) ---------- */
+function refreshMeta(){$("#nowMeta").textContent=[stateTxt,metaTxt].filter(Boolean).join(" · ")||"Radio Player PRO"}
+function setState(t){stateTxt=t;refreshMeta()}
+function ms(st){if("mediaSession" in navigator)navigator.mediaSession.playbackState=st}
+function updateMedia(){
+ if(!("mediaSession" in navigator)||!current)return;
+ try{const art=current.logo&&/^https:/i.test(current.logo)?[{src:current.logo}]:[];art.push({src:ICON,sizes:"96x96",type:"image/svg+xml"});
+  navigator.mediaSession.metadata=new MediaMetadata({title:current.name,artist:[current.city,current.country].filter(Boolean).join(", ")||"Radio Internet",album:"Radio Player PRO",artwork:art})}catch(e){}
+}
+function setupMediaKeys(){
+ if(!("mediaSession" in navigator))return;
+ const set=(a,f)=>{try{navigator.mediaSession.setActionHandler(a,f)}catch(e){}};
+ set("play",()=>current&&begin(current));set("pause",userPause);set("stop",userPause);
+ set("previoustrack",()=>step(-1));set("nexttrack",()=>step(1));
+}
+function updatePlayer(){
+ if(!current)return;
+ $("#nowTitle").textContent=current.name;
+ metaTxt=[current.city,current.country,(current.genre||"").split(",")[0]].filter(Boolean).join(" · ");refreshMeta();
+ $("#tunerTitle").textContent=current.name;$("#tunerSubtitle").textContent=[current.city,current.country].filter(Boolean).join(" / ")||"Internet radio";
+ $("#nowCover").innerHTML=$("#tunerCover").innerHTML=current.logo?`<img referrerpolicy="no-referrer" src="${esc(current.logo)}" onerror="this.parentElement.textContent='📻'">`:"📻";
+ $("#freq").textContent="LIVE";updateMedia();
+}
+
+/* ---------- pemutaran ---------- */
 function streamUrl(s){return location.protocol==="https:"&&/^http:/i.test(s.url)?s.url.replace(/^http:/i,"https:"):s.url}
-function release(a){if(!a)return;a.onplay=a.onpause=a.onplaying=a.onerror=null;try{a.pause();a.removeAttribute("src");a.load()}catch(e){}}
-function eqInfo(on){$("#eqNote").textContent=on?"EQ & spectrum aktif. Audio diproses di browser.":"Stream ini tidak mengizinkan CORS: suara diputar langsung, EQ & spectrum tidak aktif untuk station ini."}
+function release(a){if(!a)return;a.onplay=a.onpause=a.onplaying=a.onwaiting=a.onended=a.onerror=null;try{a.pause();a.removeAttribute("src");a.load()}catch(e){}}
+function eqInfo(cors){$("#eqNote").textContent=!eqOn?"EQ dimatikan: pemutaran langsung, paling hemat baterai dan stabil saat layar mati.":cors?"EQ & spectrum aktif. Audio diproses di browser.":"Stream ini tidak mengizinkan CORS: suara diputar langsung, EQ & spectrum tidak aktif untuk station ini."}
+function begin(s){retryN=0;return startStream(s)}
+function userPause(){wantPlay=false;clearTimeout(retryT);clearTimeout(stallT);retryN=0;audio.pause()}
+function reconnect(){
+ if(!wantPlay||!current)return;clearTimeout(retryT);
+ if(retryN>=6){wantPlay=false;retryN=0;setState("Terputus");toast("Koneksi terputus. Tekan Play untuk menyambung.");return}
+ const d=Math.min(1500*2**retryN,12000);retryN++;setState("Menyambung ulang…");
+ retryT=setTimeout(()=>{if(wantPlay&&current)startStream(current)},d)
+}
 function startStream(s,cors){
- setupAudio();
- if(cors===undefined)cors=corsCache[s.id]!==false;
- if(!ctx)cors=false;
+ wantPlay=true;clearTimeout(retryT);clearTimeout(stallT);
+ if(eqOn)setupAudio();
+ if(cors===undefined)cors=eqOn&&corsCache[s.id]!==false;
+ if(!eqOn||!ctx)cors=false;
  release(audio);
  if(srcNode){try{srcNode.disconnect()}catch(e){}srcNode=null}
+ eqActive=false;
  const a=new Audio();a.preload="none";if(cors)a.crossOrigin="anonymous";a.volume=+$("#volume").value;a.muted=muted;audio=a;
- a.onplay=()=>$("#play").textContent="❚❚";
- a.onpause=()=>$("#play").textContent="▶";
- a.onplaying=()=>{a._ok=true;corsCache[s.id]=cors;eqInfo(cors);render()};
- a.onerror=()=>{if(a!==audio||(cors&&!a._ok))return;toast("Stream error: server mati, format unsupported, atau koneksi ditolak.")};
+ a.onplay=()=>{$("#play").textContent="❚❚";ms("playing")};
+ a.onpause=()=>{$("#play").textContent="▶";eqActive=false;setState("Jeda");ms("paused");render()};
+ a.onwaiting=()=>{if(a!==audio)return;setState("Buffering…");clearTimeout(stallT);stallT=setTimeout(()=>{if(a===audio&&wantPlay)reconnect()},12000)};
+ a.onplaying=()=>{if(a!==audio)return;clearTimeout(stallT);retryN=0;a._ok=true;if(eqOn)corsCache[s.id]=cors;eqActive=cors&&!!analyser;setState("● LIVE");eqInfo(cors);startViz();render()};
+ a.onended=()=>{if(a===audio&&wantPlay)reconnect()};
+ a.onerror=()=>{if(a!==audio||(cors&&!a._ok))return;if(a._ok&&wantPlay)reconnect();else{setState("Gagal");toast("Stream error: server mati, format unsupported, atau koneksi ditolak.")}};
+ if(ctx){eqOn?ctx.resume():ctx.suspend()}
  if(cors){try{srcNode=ctx.createMediaElementSource(a);srcNode.connect(inputNode)}catch(e){srcNode=null}}
- if(ctx&&ctx.state==="suspended")ctx.resume();
+ setState(retryN?"Menyambung ulang…":"Menghubungkan…");
  a.src=streamUrl(s);
- return a.play().then(()=>toast("Tuning: "+s.name)).catch(err=>{
+ return a.play().catch(err=>{
   if(a!==audio||(err&&err.name==="AbortError"))return;
-  if(err&&err.name==="NotAllowedError"){toast("Browser memblokir autoplay. Tekan Play.");return}
+  if(err&&err.name==="NotAllowedError"){wantPlay=false;setState("Jeda");toast("Browser memblokir autoplay. Tekan Play.");return}
   if(cors){corsCache[s.id]=false;return startStream(s,false)}
-  toast("Stream gagal. Coba station lain atau reconnect.")})
+  if(retryN>0)reconnect();else{setState("Gagal");toast("Stream gagal. Coba station lain atau sambung ulang.")}
+ })
 }
-function tune(id){let s=lookup(id);if(!s)return;if(current?.id===id){if(audio.paused)startStream(s);else audio.pause();render();return}current=s;history=[id,...history.filter(x=>x!==id)].slice(0,30);localStorage.setItem("rpro_hist",JSON.stringify(history));updatePlayer();startStream(s);render()}
-function updatePlayer(){if(!current)return;$("#nowTitle").textContent=current.name;$("#nowMeta").textContent=[current.city,current.country,current.genre].filter(Boolean).join(" · ");$("#tunerTitle").textContent=current.name;$("#tunerSubtitle").textContent=[current.city,current.country].filter(Boolean).join(" / ")||"Internet radio";$("#nowCover").innerHTML=$("#tunerCover").innerHTML=current.logo?`<img src="${esc(current.logo)}" onerror="this.parentElement.textContent='📻'">`:"📻";$("#freq").textContent="LIVE"}
-function favorite(id){fav=fav.includes(id)?fav.filter(x=>x!==id):[id,...fav];localStorage.setItem("rpro_fav",JSON.stringify(fav));render()}
-function share(id){let s=lookup(id);navigator.clipboard?.writeText(`${s.name}\n${s.url}`).then(()=>toast("Link radio disalin")).catch(()=>toast(s.url))}
-$("#searchCity").onclick=byCity;$("#city").onkeydown=e=>{if(e.key==="Enter")byCity()};$("#country").onchange=e=>byCountry(e.target.value);$("#filter").oninput=render;$("#sort").onchange=render;
-$("#gps").onclick=()=>navigator.geolocation?.getCurrentPosition(p=>{geo={lat:p.coords.latitude,lon:p.coords.longitude};fetchList(`${base}/search?latitude=${geo.lat}&longitude=${geo.lon}&radius=150&limit=200&order=distance&hidebroken=true`,"Scanning nearby stations…")},()=>toast("Lokasi tidak diizinkan."));
-$("#play").onclick=()=>{if(!current)return toast("Pilih radio dahulu.");audio.paused?startStream(current):audio.pause()};
-$("#stop").onclick=()=>audio.pause();$("#retry").onclick=()=>{if(current){delete corsCache[current.id];startStream(current)}};
-$("#volume").oninput=()=>audio.volume=$("#volume").value;$("#mute").onclick=()=>{muted=!muted;audio.muted=muted;$("#mute").textContent=muted?"🔇":"♪"};
-// Audio graph & equalizer. Browser policy requires user interaction before audio context.
-function setupAudio(){if(ctx)return;try{ctx=new(window.AudioContext||window.webkitAudioContext)();inputNode=ctx.createGain();let prev=inputNode;bands.forEach((f,i)=>{let filter=ctx.createBiquadFilter();filter.type=i===0?"lowshelf":i===bands.length-1?"highshelf":"peaking";filter.frequency.value=f;filter.Q.value=1;filter.gain.value=+($("#band"+i)?.value||0);prev.connect(filter);prev=filter;eqNodes.push(filter)});analyser=ctx.createAnalyser();analyser.fftSize=256;prev.connect(analyser);analyser.connect(ctx.destination);drawViz()}catch(e){ctx=null;analyser=null;$("#eqNote").textContent="Browser tidak mendukung audio processing; streaming biasa tetap tersedia."}}
-function drawViz(){let c=$("#visualizer"),g=c.getContext("2d"),n=analyser.frequencyBinCount,data=new Uint8Array(n);function frame(){vizRAF=requestAnimationFrame(frame);g.clearRect(0,0,c.width,c.height);g.fillStyle="#07111d";g.fillRect(0,0,c.width,c.height);if(analyser){analyser.getByteFrequencyData(data);let w=c.width/48;for(let i=0;i<48;i++){let v=data[i*2]/255,h=v*c.height*.85;g.fillStyle=`hsl(${175-i*1.7} 85% ${40+v*30}%)`;g.fillRect(i*w+2,c.height-h,w-4,h);}}else{g.strokeStyle="#244557";g.beginPath();g.moveTo(0,c.height/2);g.lineTo(c.width,c.height/2);g.stroke()}}frame()}
+function playNew(s){current=s;hist=[s.id,...hist.filter(x=>x!==s.id)].slice(0,30);jset("rpro_hist",hist);keep(s);jset("rpro_last",s.id);updatePlayer();begin(s);render()}
+function tune(id){const s=lookup(id);if(!s)return;if(current?.id===id){if(audio.paused)begin(s);else userPause();render();return}playNew(s)}
+function step(d){const l=curList;if(!l.length)return toast("Belum ada daftar station.");let i=l.findIndex(x=>x.id===current?.id);i=i<0?(d>0?0:l.length-1):(i+d+l.length)%l.length;playNew(l[i])}
+
+/* ---------- audio graph (EQ) — hanya dibuat jika EQ aktif ---------- */
+function setupAudio(){
+ if(ctx||!eqOn)return;
+ try{
+  ctx=new(window.AudioContext||window.webkitAudioContext)();inputNode=ctx.createGain();let prev=inputNode;
+  bands.forEach((f,i)=>{const fl=ctx.createBiquadFilter();fl.type=i===0?"lowshelf":i===bands.length-1?"highshelf":"peaking";fl.frequency.value=f;fl.Q.value=1;fl.gain.value=+($("#band"+i)?.value||0);prev.connect(fl);prev=fl;eqNodes.push(fl)});
+  analyser=ctx.createAnalyser();analyser.fftSize=256;prev.connect(analyser);analyser.connect(ctx.destination)
+ }catch(e){ctx=null;analyser=null;eqOn=false;$("#eqOn").checked=false;$("#eqNote").textContent="Browser tidak mendukung audio processing; streaming biasa tetap tersedia."}
+}
+function idleViz(){const c=$("#visualizer"),g=c.getContext("2d");g.fillStyle="#07111d";g.fillRect(0,0,c.width,c.height);g.strokeStyle="#244557";g.beginPath();g.moveTo(0,c.height/2);g.lineTo(c.width,c.height/2);g.stroke()}
+function startViz(){
+ if(vizRunning||!analyser||!eqActive||document.hidden)return;vizRunning=true;
+ const c=$("#visualizer"),g=c.getContext("2d"),data=new Uint8Array(analyser.frequencyBinCount);
+ (function frame(){
+  if(!eqActive||document.hidden){vizRunning=false;idleViz();return}
+  if(!c.offsetParent){setTimeout(frame,400);return}
+  requestAnimationFrame(frame);analyser.getByteFrequencyData(data);
+  g.fillStyle="#07111d";g.fillRect(0,0,c.width,c.height);const w=c.width/48;
+  for(let i=0;i<48;i++){const v=data[i*2]/255,h=v*c.height*.85;g.fillStyle=`hsl(${175-i*1.7} 85% ${40+v*30}%)`;g.fillRect(i*w+2,c.height-h,w-4,h)}
+ })()
+}
 const presets={flat:[0,0,0,0,0,0,0,0,0,0],bass:[7,5,4,2,0,0,0,-1,-1,-1],treble:[-2,-1,0,0,0,2,4,5,5,5],vocal:[-3,-2,0,2,3,3,1,0,-1,-2],rock:[4,3,1,-2,-1,2,4,3,2,2],jazz:[3,2,1,0,-2,-1,2,3,3,2]};
-function buildEQ(){let root=$("#eq");root.innerHTML=bands.map((f,i)=>`<div class="eqband"><b id="val${i}">0</b><input id="band${i}" type="range" min="-12" max="12" value="0" step="1"><label>${labels[i]}</label></div>`).join("");bands.forEach((_,i)=>$("#band"+i).oninput=e=>{let v=+e.target.value;$("#val"+i).textContent=v;eqNodes[i]&&(eqNodes[i].gain.value=v)});$("#preset").onchange=()=>applyPreset($("#preset").value);$("#eqReset").onclick=()=>applyPreset("flat")}
-function applyPreset(name){let vals=presets[name]||presets.flat;vals.forEach((v,i)=>{$("#band"+i).value=v;$("#val"+i).textContent=v;if(eqNodes[i])eqNodes[i].gain.value=v})}
-$("#sleepStart").onclick=()=>{clearTimeout(sleepId);let m=+$("#sleep").value;if(!m){$("#sleepStatus").textContent="Timer tidak aktif.";return}sleepId=setTimeout(()=>{audio.pause();$("#sleepStatus").textContent="Timer selesai — radio dihentikan.";toast("Sleep timer selesai")},m*60000);$("#sleepStatus").textContent=`Radio akan berhenti dalam ${m} menit.`};
-$("#alarmSet").onclick=()=>{let t=$("#alarmTime").value;if(!t)return toast("Pilih waktu alarm.");alarm={time:t,daily:$("#alarmDaily").checked,fired:false};$("#alarmStatus").textContent=`Alarm aktif: ${t}${alarm.daily?" · setiap hari":""}`;toast("Alarm diset")};
-alarmInterval=setInterval(()=>{if(!alarm)return;let now=new Date(),time=now.toTimeString().slice(0,5);if(time===alarm.time&&!alarm.fired){alarm.fired=true;if(current)startStream(current);else toast("Alarm! Pilih station radio terlebih dahulu.");$("#alarmStatus").textContent="Alarm berbunyi!";if(!alarm.daily)alarm=null;else setTimeout(()=>alarm.fired=false,65000)}},15000);
+function buildEQ(){const root=$("#eq");root.innerHTML=bands.map((f,i)=>`<div class="eqband"><b id="val${i}">0</b><input id="band${i}" type="range" min="-12" max="12" value="0" step="1"><label>${labels[i]}</label></div>`).join("");bands.forEach((_,i)=>$("#band"+i).oninput=e=>{const v=+e.target.value;$("#val"+i).textContent=v;eqNodes[i]&&(eqNodes[i].gain.value=v)});$("#preset").onchange=()=>applyPreset($("#preset").value);$("#eqReset").onclick=()=>applyPreset("flat")}
+function applyPreset(name){const vals=presets[name]||presets.flat;vals.forEach((v,i)=>{$("#band"+i).value=v;$("#val"+i).textContent=v;if(eqNodes[i])eqNodes[i].gain.value=v})}
+
+/* ---------- sleep timer, alarm, wake lock ---------- */
+function tickSleep(){
+ if(!sleepEnd)return;const el=$("#sleepStatus"),left=sleepEnd-Date.now();
+ if(left<=0){sleepEnd=0;userPause();el.textContent="Timer selesai — radio dihentikan.";toast("Sleep timer selesai");return}
+ if(!document.hidden){const m=Math.floor(left/60000),s=Math.floor(left%60000/1000);el.textContent=`Radio berhenti dalam ${m}:${String(s).padStart(2,"0")}`}
+}
+function checkAlarm(){
+ if(!alarm)return;const t=new Date().toTimeString().slice(0,5);
+ if(t===alarm.time&&!alarm.fired){
+  alarm.fired=true;try{navigator.vibrate?.([300,150,300])}catch(e){}
+  if(current)begin(current);else toast("Alarm! Pilih station radio terlebih dahulu.");
+  $("#alarmStatus").textContent="Alarm berbunyi!";
+  if(!alarm.daily){alarm=null;jset("rpro_alarm",null)}else{const a=alarm;setTimeout(()=>{a.fired=false},65000)}
+ }
+}
+async function lockScreen(){
+ if(!("wakeLock" in navigator)){$("#wakeLock").checked=false;return toast("Browser tidak mendukung layar tetap menyala.")}
+ try{wakeSentinel=await navigator.wakeLock.request("screen");wakeSentinel.onrelease=()=>{wakeSentinel=null}}catch(e){$("#wakeLock").checked=false;toast("Tidak bisa menahan layar tetap menyala.")}
+}
+
+/* ---------- event ---------- */
+$("#list").onclick=e=>{const art=e.target.closest(".station");if(!art)return;const id=art.dataset.id,b=e.target.closest("button"),act=b?b.dataset.act:"tune";if(act==="fav")favorite(id);else if(act==="share")share(id);else tune(id)};
+document.querySelectorAll("button[data-view]").forEach(b=>b.onclick=()=>setView(b.dataset.view));
+$("#more").onclick=()=>{limit+=PAGE;render()};
+$("#searchCity").onclick=byCity;$("#city").onkeydown=e=>{if(e.key==="Enter"){byCity();e.target.blur()}};
+$("#country").onchange=e=>byCountry(e.target.value);
+$("#filter").oninput=()=>{limit=PAGE;render()};$("#sort").onchange=()=>{limit=PAGE;render()};
+$("#gps").onclick=()=>{
+ if(!navigator.geolocation)return toast("GPS tidak didukung browser ini.");toast("Mencari lokasi…");
+ navigator.geolocation.getCurrentPosition(p=>{geo={lat:p.coords.latitude,lon:p.coords.longitude};goAll();$("#sort").value="distance";fetchList(`/stations/search?geo_lat=${geo.lat}&geo_long=${geo.lon}&geo_distance=100000&limit=200&order=clickcount&reverse=true&hidebroken=true`,"Mencari station di sekitar Anda…")},()=>toast("Lokasi tidak diizinkan (atau halaman bukan HTTPS)."),{timeout:10000,maximumAge:300000})
+};
+$("#play").onclick=()=>{if(!current)return toast("Pilih radio dahulu.");audio.paused?begin(current):userPause()};
+$("#stop").onclick=userPause;$("#prev").onclick=()=>step(-1);$("#next").onclick=()=>step(1);
+$("#retry").onclick=()=>{if(current){delete corsCache[current.id];begin(current)}};
+$("#volume").value=jget("rpro_vol",.8);
+$("#volume").oninput=()=>{audio.volume=+$("#volume").value;jset("rpro_vol",+$("#volume").value)};
+$("#mute").onclick=()=>{muted=!muted;audio.muted=muted;$("#mute").textContent=muted?"🔇":"♪"};
+$("#eqOn").checked=eqOn;
+$("#eqOn").onchange=e=>{eqOn=e.target.checked;jset("rpro_eq",eqOn);if(current&&!audio.paused)begin(current);else eqInfo(eqOn)};
+$("#sleepStart").onclick=()=>{const m=+$("#sleep").value;if(!m){sleepEnd=0;$("#sleepStatus").textContent="Timer tidak aktif.";return}sleepEnd=Date.now()+m*60000;tickSleep()};
+$("#alarmSet").onclick=()=>{const t=$("#alarmTime").value;if(!t)return toast("Pilih waktu alarm.");alarm={time:t,daily:$("#alarmDaily").checked,fired:false};jset("rpro_alarm",{time:t,daily:alarm.daily});$("#alarmStatus").textContent=`Alarm aktif: ${t}${alarm.daily?" · setiap hari":""}`;toast("Alarm diset")};
+$("#alarmOff").onclick=()=>{alarm=null;jset("rpro_alarm",null);$("#alarmStatus").textContent="Alarm tidak aktif."};
+$("#wakeLock").onchange=e=>{if(e.target.checked)lockScreen();else{wakeSentinel?.release();wakeSentinel=null}};
 $("#miniBtn").onclick=()=>{document.body.classList.toggle("minimized");$("#miniBtn").textContent=document.body.classList.contains("minimized")?"▣ Buka Player PRO":"▱ Mini Player"};
-buildEQ();loadCountries();byCity();
+setInterval(tickSleep,1000);setInterval(checkAlarm,10000);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)return;startViz();tickSleep();checkAlarm();if($("#wakeLock").checked&&!wakeSentinel)lockScreen()});
+addEventListener("online",()=>{if(wantPlay&&current&&(audio.paused||audio.readyState<3)){retryN=0;startStream(current)}});
+
+/* ---------- init ---------- */
+$("#city").value=jget("rpro_city","Medan");
+const lastId=jget("rpro_last",null);if(lastId&&saved[lastId]){current=saved[lastId];updatePlayer()}
+const a0=jget("rpro_alarm",null);if(a0&&a0.time){alarm={...a0,fired:false};$("#alarmTime").value=a0.time;$("#alarmDaily").checked=!!a0.daily;$("#alarmStatus").textContent=`Alarm aktif: ${a0.time}${a0.daily?" · setiap hari":""}`}
+buildEQ();setupMediaKeys();idleViz();eqInfo(eqOn);loadCountries();byCity();
 </script></body></html>
