@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radio Nearby — Radio Online</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0e27;
+    --panel: #141a3a;
+    --panel-light: #1e2550;
+    --accent: #00d9ff;
+    --accent2: #ff2e93;
+    --text: #e8eaf6;
+    --muted: #8892b0;
+    --success: #00ff9d;
+    --danger: #ff4757;
+  }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1f4a 100%);
+    color: var(--text);
+    min-height: 100vh;
+    /* Padding bawah diperbesar agar konten tidak tertutup player */
+    padding-bottom: 260px; 
+  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
+  header {
+    text-align: center;
+    padding: 20px 10px;
+    background: rgba(20,26,58,0.6);
+    border-radius: 16px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(0,217,255,0.2);
+  }
+  header h1 {
+    font-size: 1.8em;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  header p { color: var(--muted); font-size: 0.9em; margin-top: 5px; }
+
+  .card {
+    background: var(--panel);
+    border-radius: 14px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .card h3 {
+    font-size: 1em;
+    margin-bottom: 12px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .search-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  input[type="text"], select {
+    flex: 1;
+    min-width: 140px;
+    padding: 10px 12px;
+    background: var(--panel-light);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+  }
+  input[type="text"]:focus, select:focus { outline: none; border-color: var(--accent); }
+  
+  button {
+    padding: 10px 16px;
+    background: linear-gradient(135deg, var(--accent), #0099cc);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,217,255,0.3); }
+  button.secondary { background: var(--panel-light); border: 1px solid rgba(255,255,255,0.1); }
+  button.success { background: linear-gradient(135deg, var(--success), #00cc7a); }
+  button.danger { background: linear-gradient(135deg, var(--danger), #cc2233); }
+
+  .preset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .preset-grid button { padding: 8px; font-size: 12px; }
+
+  .station-list { max-height: 400px; overflow-y: auto; margin-top: 10px; }
+  .station-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px; background: var(--panel-light);
+    border-radius: 8px; margin-bottom: 6px;
+  }
+  .station-item:hover { background: rgba(0,217,255,0.1); }
+  .station-item img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #222; }
+  .station-info { flex: 1; min-width: 0; }
+  .station-info strong { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .station-info small { color: var(--muted); font-size: 11px; }
+  .station-actions { display: flex; gap: 4px; }
+  .station-actions button { padding: 6px 10px; font-size: 12px; }
+  .fav-btn { background: transparent !important; font-size: 18px !important; padding: 4px 8px !important; }
+  .fav-btn.active { color: gold; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
+  .tab {
+    padding: 6px 12px; background: var(--panel-light);
+    border-radius: 6px; cursor: pointer; font-size: 12px;
+  }
+  .tab.active { background: var(--accent); color: #000; font-weight: 600; }
+
+  .status { text-align: center; color: var(--muted); padding: 20px; font-size: 13px; }
+  .error { color: var(--danger); }
+
+  /* PLAYER FIXED - DIBATASI TINGGINYA */
+  .player {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(180deg, rgba(20,26,58,0.98), rgba(10,14,39,0.99));
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(0,217,255,0.3);
+    padding: 12px;
+    z-index: 100;
+    /* Kunci agar tidak menutupi seluruh layar */
+    max-height: 65vh; 
+    overflow-y: auto;
+  }
+  .player-inner { max-width: 1200px; margin: 0 auto; }
+
+  .tuner {
+    background: #000; border: 2px solid var(--accent);
+    border-radius: 8px; padding: 10px; margin-bottom: 10px;
+    font-family: 'Courier New', monospace;
+  }
+  .tuner-top { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--accent); }
+  .live-indicator {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; background: var(--danger);
+    border-radius: 10px; color: white; font-weight: bold; font-size: 10px;
+  }
+  .live-indicator.active { animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .tuner-name {
+    font-size: 1.1em; color: var(--success); margin: 4px 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-shadow: 0 0 8px var(--success);
+  }
+  .tuner-freq { color: var(--muted); font-size: 11px; }
+
+  #spectrumCanvas {
+    width: 100%; height: 60px; background: #000;
+    border-radius: 6px; margin-bottom: 10px; display: block;
+  }
+
+  .controls {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; margin-bottom: 10px; flex-wrap: wrap;
+  }
+  .ctrl-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--panel-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; padding: 0;
+  }
+  .ctrl-btn.play {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    font-size: 22px;
+  }
+  .ctrl-btn.muted { opacity: 0.5; }
+  .ctrl-btn.active-toggle { background: var(--accent); color: #000; }
+
+  .volume-row { display: flex; align-items: center; gap: 8px; margin: 0 15px; }
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    background: transparent; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--panel-light); border-radius: 2px; }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    background: var(--accent); border-radius: 50%; margin-top: -5px;
+  }
+
+  /* EQ Slider Vertikal */
+  .eq-container {
+    display: flex; gap: 8px; justify-content: space-around;
+    align-items: flex-end; height: 160px; padding: 15px 10px;
+    background: var(--panel-light); border-radius: 8px; margin-bottom: 10px;
+  }
+  .eq-band { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; height: 100%; }
+  .eq-slider-wrapper {
+    position: relative; width: 30px; height: 100px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .eq-slider-wrapper input[type="range"] {
+    width: 100px; height: 30px;
+    transform: rotate(-90deg); transform-origin: center;
+    position: absolute;
+  }
+  .eq-band label { font-size: 10px; color: var(--muted); text-align: center; font-weight: 600; }
+  .eq-band .eq-val { font-size: 10px; color: var(--accent); font-family: monospace; font-weight: bold; }
+
+  .timer-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .timer-row button { flex: 1; min-width: 60px; padding: 10px; font-size: 13px; }
+  .timer-row button.active { background: var(--success); color: #000; }
+  .timer-display {
+    text-align: center; font-family: monospace; font-size: 1.2em;
+    color: var(--accent); padding: 10px; background: #000;
+    border-radius: 6px; margin-top: 8px;
+  }
+
+  .alarm-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .alarm-row input[type="time"] {
+    padding: 10px; background: var(--panel-light);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: var(--text);
+  }
+  .alarm-row label { font-size: 13px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+
+  /* Panel Lanjutan (Collapsible) */
+  .advanced-panel { display: none; animation: slideUp 0.3s ease; }
+  .advanced-panel.show { display: block; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .mini-toggle {
+    position: fixed; bottom: 15px; right: 15px;
+    width: 50px; height: 50px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: none; align-items: center; justify-content: center;
+    font-size: 22px; z-index: 200;
+  }
+  body.mini-mode .player { display: none; }
+  body.mini-mode .mini-toggle { display: flex; }
+  body.mini-mode { padding-bottom: 80px; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--panel); }
+  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.4em; }
+    .eq-container { height: 140px; }
+    .eq-slider-wrapper { height: 80px; }
+    .ctrl-btn { width: 40px; height: 40px; font-size: 16px; }
+    .ctrl-btn.play { width: 50px; height: 50px; font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>📻 Radio Nearby</h1>
+    <p>Radio online di sekitar Anda</p>
+  </header>
+
+  <div class="card">
+    <h3>🔍 Temukan siaran radio</h3>
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="Cari kota atau nama radio...">
+      <button onclick="searchByName()">Cari</button>
+    </div>
+    <div class="search-row">
+      <select id="countrySelect">
+        <option value="">-- Preset Negara --</option>
+        <option value="ID">🇮🇩 Indonesia</option>
+        <option value="US">🇺🇸 United States</option>
+        <option value="GB">🇬🇧 United Kingdom</option>
+        <option value="JP">🇯🇵 Japan</option>
+        <option value="KR">🇰🇷 South Korea</option>
+        <option value="DE">🇩🇪 Germany</option>
+        <option value="FR">🇫🇷 France</option>
+        <option value="ES">🇪🇸 Spain</option>
+        <option value="IT">🇮🇹 Italy</option>
+        <option value="BR">🇧🇷 Brazil</option>
+        <option value="AU">🇦🇺 Australia</option>
+        <option value="CA">🇨🇦 Canada</option>
+        <option value="MY">🇲🇾 Malaysia</option>
+        <option value="SG">🇸🇬 Singapore</option>
+        <option value="TH">🇹🇭 Thailand</option>
+        <option value="PH">🇵🇭 Philippines</option>
+        <option value="VN">🇻🇳 Vietnam</option>
+        <option value="IN">🇮🇳 India</option>
+        <option value="CN">🇨🇳 China</option>
+        <option value="RU">🇷🇺 Russia</option>
+      </select>
+      <button onclick="searchByCountry()">Cari Negara</button>
+    </div>
+    <button class="success" style="width:100%;" onclick="searchByLocation()">📍 Gunakan lokasi saya (GPS)</button>
+    <button class="secondary" style="width:100%; margin-top:6px;" onclick="loadTopStations()">↻ Muat radio populer</button>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <div class="tab active" data-tab="all" onclick="switchTab('all')">Semua stasiun</div>
+      <div class="tab" data-tab="fav" onclick="switchTab('fav')">★ Favorit (<span id="favCount">0</span>)</div>
+      <div class="tab" data-tab="hist" onclick="switchTab('hist')">⏱ Terakhir diputar (<span id="histCount">0</span>)</div>
+    </div>
+    <div class="search-row">
+      <select id="filterGenre"><option value="">Semua genre</option></select>
+      <select id="sortBy">
+        <option value="near">Terdekat</option>
+        <option value="name">Nama A–Z</option>
+        <option value="click">Popularitas</option>
+      </select>
+      <button class="secondary" onclick="resetFilters()">Reset</button>
+    </div>
+    <div class="station-list" id="stationList">
+      <div class="status">Pilih radio untuk mulai streaming</div>
+    </div>
+  </div>
+</div>
+
+<div class="player" id="player">
+  <div class="player-inner">
+    <!-- Tuner Display -->
+    <div class="tuner">
+      <div class="tuner-top">
+        <span>DIGITAL TUNER</span>
+        <span class="live-indicator" id="liveIndicator">● LIVE</span>
+      </div>
+      <div class="tuner-name" id="tunerName">— Tidak ada siaran —</div>
+      <div class="tuner-freq" id="tunerFreq">Siapkan stasiun untuk mulai</div>
+    </div>
+
+    <!-- Spectrum -->
+    <canvas id="spectrumCanvas"></canvas>
+
+    <!-- Main Controls -->
+    <div class="controls">
+      <button class="ctrl-btn" onclick="stopRadio()" title="Stop">⏹</button>
+      <button class="ctrl-btn" onclick="reconnectRadio()" title="Reconnect">↻</button>
+      <button class="ctrl-btn play" id="playBtn" onclick="togglePlay()">▶</button>
+      <div class="volume-row">
+        <button class="ctrl-btn" id="muteBtn" onclick="toggleMute()">🔊</button>
+        <input type="range" id="volumeSlider" min="0" max="100" value="80" oninput="setVolume(this.value)">
+      </div>
+      <!-- Tombol Toggle Menu Lanjutan -->
+      <button class="ctrl-btn" id="advancedToggleBtn" onclick="toggleAdvancedPanel()" title="Buka EQ, Timer, Alarm">⚙️</button>
+    </div>
+
+    <!-- PANEL LANJUTAN (EQ, SLEEP, ALARM) - Disembunyikan secara default -->
+    <div class="advanced-panel" id="advancedPanel">
+      <div class="card" style="margin-bottom:10px;">
+        <h3>🎛 Equalizer 10-Band <button class="secondary" style="margin-left:auto; padding:4px 10px; font-size:11px;" onclick="toggleAdvancedPanel()">Tutup ✕</button></h3>
+        <div class="preset-grid" id="eqPresets">
+          <button onclick="applyEQPreset('flat')">Flat</button>
+          <button onclick="applyEQPreset('bass')">Bass Boost</button>
+          <button onclick="applyEQPreset('treble')">Treble Boost</button>
+          <button onclick="applyEQPreset('vocal')">Vocal</button>
+          <button onclick="applyEQPreset('rock')">Rock</button>
+          <button onclick="applyEQPreset('jazz')">Jazz</button>
+        </div>
+        <div class="eq-container" id="eqContainer"></div>
+      </div>
+
+      <div class="card" style="margin-bottom:10px;">
+        <h3>⏰ Sleep Timer</h3>
+        <div class="timer-row" id="sleepTimerRow">
+          <button onclick="setSleepTimer(0)">Off</button>
+          <button onclick="setSleepTimer(15)">15m</button>
+          <button onclick="setSleepTimer(30)">30m</button>
+          <button onclick="setSleepTimer(45)">45m</button>
+          <button onclick="setSleepTimer(60)">60m</button>
+          <button onclick="setSleepTimer(90)">90m</button>
+          <button onclick="setSleepTimer(120)">120m</button>
+        </div>
+        <div class="timer-display" id="sleepDisplay">Sleep: OFF</div>
+      </div>
+
+      <div class="card">
+        <h3>⏰ Alarm Radio</h3>
+        <div class="alarm-row">
+          <input type="time" id="alarmTime">
+          <label><input type="checkbox" id="alarmDaily"> Harian</label>
+          <button onclick="setAlarm()">Set Alarm</button>
+          <button class="danger" onclick="clearAlarm()">Batal</button>
+        </div>
+        <div class="timer-display" id="alarmDisplay">Alarm: OFF</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="mini-toggle" onclick="toggleMini()">📻</button>
+<audio id="audio" crossorigin="anonymous" preload="none"></audio>
+
+<script>
+const state = {
+  stations: [], currentStation: null, isPlaying: false, isMuted: false,
+  favorites: JSON.parse(localStorage.getItem('radioFav') || '[]'),
+  history: JSON.parse(localStorage.getItem('radioHist') || '[]'),
+  currentTab: 'all', sleepRemaining: 0, sleepInterval: null,
+  alarmTimeout: null, alarmInterval: null,
+  audioCtx: null, sourceNode: null, analyser: null, eqFilters: [], gainNode: null, spectrumRAF: null
+};
+
+const EQ_FREQS = [60, 170, 310, 600, 1000, 3000, 6000, 8000, 12000, 16000];
+const EQ_LABELS = ['60', '170', '310', '600', '1K', '3K', '6K', '8K', '12K', '16K'];
+const EQ_PRESETS = {
+  flat: [0,0,0,0,0,0,0,0,0,0], bass: [8,6,4,2,0,0,0,0,0,0],
+  treble: [0,0,0,0,0,2,4,6,8,10], vocal: [-2,-1,0,3,5,5,3,0,-1,-2],
+  rock: [5,4,2,0,-1,0,2,4,5,5], jazz: [4,3,1,2,-1,-1,0,2,3,4]
+};
+
+const audio = document.getElementById('audio');
+const stationList = document.getElementById('stationList');
+const tunerName = document.getElementById('tunerName');
+const tunerFreq = document.getElementById('tunerFreq');
+const liveIndicator = document.getElementById('liveIndicator');
+const playBtn = document.getElementById('playBtn');
+const muteBtn = document.getElementById('muteBtn');
+const spectrumCanvas = document.getElementById('spectrumCanvas');
+const spectrumCtx = spectrumCanvas.getContext('2d');
+
+function init() {
+  buildEQ(); updateFavHistCounts(); audio.volume = 0.8;
+  setupSpectrumCanvas(); loadTopStations();
+}
+
+function setupSpectrumCanvas() {
+  const resize = () => {
+    const rect = spectrumCanvas.getBoundingClientRect();
+    spectrumCanvas.width = rect.width * window.devicePixelRatio;
+    spectrumCanvas.height = rect.height * window.devicePixelRatio;
+  };
+  resize(); window.addEventListener('resize', resize);
+}
+
+function initAudioGraph() {
+  if (state.audioCtx) return;
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    state.audioCtx = new AC();
+    state.sourceNode = state.audioCtx.createMediaElementSource(audio);
+    state.analyser = state.audioCtx.createAnalyser();
+    state.analyser.fftSize = 256; state.analyser.smoothingTimeConstant = 0.8;
+    let prevNode = state.sourceNode;
+    state.eqFilters = EQ_FREQS.map((freq, i) => {
+      const filter = state.audioCtx.createBiquadFilter();
+      filter.type = i === 0 ? 'lowshelf' : (i === EQ_FREQS.length - 1 ? 'highshelf' : 'peaking');
+      filter.frequency.value = freq; filter.Q.value = 1.2; filter.gain.value = 0;
+      prevNode.connect(filter); prevNode = filter; return filter;
+    });
+    state.gainNode = state.audioCtx.createGain();
+    prevNode.connect(state.gainNode); state.gainNode.connect(state.analyser);
+    state.analyser.connect(state.audioCtx.destination);
+  } catch (e) { console.error('Audio graph error:', e); }
+}
+
+function resumeAudioContext() {
+  if (state.audioCtx && state.audioCtx.state === 'suspended') state.audioCtx.resume();
+}
+
+function drawSpectrum() {
+  if (!state.analyser) { spectrumRAF = requestAnimationFrame(drawSpectrum); return; }
+  const bufferLength = state.analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  state.analyser.getByteFrequencyData(dataArray);
+  const w = spectrumCanvas.width, h = spectrumCanvas.height;
+  spectrumCtx.clearRect(0, 0, w, h);
+  const barCount = 64, step = Math.floor(bufferLength / barCount), barWidth = w / barCount - 2;
+  for (let i = 0; i < barCount; i++) {
+    const val = dataArray[i * step], barHeight = (val / 255) * h, x = i * (barWidth + 2), y = h - barHeight;
+    const gradient = spectrumCtx.createLinearGradient(0, y, 0, h);
+    gradient.addColorStop(0, '#ff2e93'); gradient.addColorStop(0.5, '#00d9ff'); gradient.addColorStop(1, '#00ff9d');
+    spectrumCtx.fillStyle = gradient; spectrumCtx.fillRect(x, y, barWidth, barHeight);
+  }
+  spectrumRAF = requestAnimationFrame(drawSpectrum);
+}
+
+function buildEQ() {
+  const container = document.getElementById('eqContainer'); container.innerHTML = '';
+  EQ_FREQS.forEach((freq, i) => {
+    const band = document.createElement('div'); band.className = 'eq-band';
+    band.innerHTML = `<span class="eq-val" id="eqVal${i}">0dB</span>
+      <div class="eq-slider-wrapper"><input type="range" min="-12" max="12" value="0" step="1" id="eqSlider${i}" oninput="setEQBand(${i}, this.value)"></div>
+      <label>${EQ_LABELS[i]}</label>`;
+    container.appendChild(band);
+  });
+}
+
+function setEQBand(index, value) {
+  document.getElementById(`eqVal${index}`).textContent = `${value}dB`;
+  if (state.eqFilters[index]) state.eqFilters[index].gain.value = parseFloat(value);
+}
+
+function applyEQPreset(name) {
+  const preset = EQ_PRESETS[name]; if (!preset) return;
+  preset.forEach((val, i) => {
+    const slider = document.getElementById(`eqSlider${i}`);
+    if (slider) { slider.value = val; setEQBand(i, val); }
+  });
+}
+
+// FUNGSI TOGGLE PANEL LANJUTAN
+function toggleAdvancedPanel() {
+  const panel = document.getElementById('advancedPanel');
+  const btn = document.getElementById('advancedToggleBtn');
+  panel.classList.toggle('show');
+  btn.classList.toggle('active-toggle');
+}
+
+const API_BASE = 'https://de1.api.radio-browser.info/json';
+const API_HEADERS = { 'User-Agent': 'RadioNearbyApp/1.0' };
+
+async function apiFetch(endpoint) {
+  try { const res = await fetch(`${API_BASE}${endpoint}`, { headers: API_HEADERS }); if (!res.ok) throw new Error(); return await res.json(); }
+  catch (e) { console.error(e); return null; }
+}
+
+async function searchByName() {
+  const q = document.getElementById('searchInput').value.trim(); if (!q) return alert('Masukkan kata kunci!');
+  stationList.innerHTML = '<div class="status">Mencari...</div>';
+  renderStations(await apiFetch(`/stations/search?name=${encodeURIComponent(q)}&limit=50&order=clickcount&reverse=true`) || []);
+}
+async function searchByCountry() {
+  const code = document.getElementById('countrySelect').value; if (!code) return alert('Pilih negara!');
+  stationList.innerHTML = '<div class="status">Mencari...</div>';
+  renderStations(await apiFetch(`/stations/search?countrycode=${code}&limit=50&order=clickcount&reverse=true`) || []);
+}
+async function searchByLocation() {
+  if (!navigator.geolocation) return alert('GPS tidak didukung.');
+  stationList.innerHTML = '<div class="status">📍 Mendapatkan lokasi...</div>';
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    stationList.innerHTML = '<div class="status">Mencari radio terdekat...</div>';
+    renderStations(await apiFetch(`/stations/bycoordinate/${pos.coords.latitude}/${pos.coords.longitude}?limit=50`) || []);
+  }, (err) => { stationList.innerHTML = `<div class="status error">Izin lokasi ditolak: ${err.message}</div>`; });
+}
+async function loadTopStations() {
+  stationList.innerHTML = '<div class="status">Memuat radio populer...</div>';
+  renderStations(await apiFetch('/stations/topclick/50') || []);
+}
+
+function renderStations(list) {
+  state.stations = list;
+  if (!list || list.length === 0) { stationList.innerHTML = '<div class="status">Tidak ada stasiun yang cocok.</div>'; return; }
+  stationList.innerHTML = '';
+  list.forEach((st, idx) => {
+    const isFav = state.favorites.some(f => f.stationuuid === st.stationuuid);
+    const item = document.createElement('div'); item.className = 'station-item';
+    item.innerHTML = `
+      <img src="${st.favicon || ''}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><rect fill=%22%23333%22 width=%2240%22 height=%2240%22/><text x=%2220%22 y=%2226%22 text-anchor=%22middle%22 fill=%22%23888%22 font-size=%2220%22>📻</text></svg>'">
+      <div class="station-info"><strong>${escapeHtml(st.name)}</strong><small>${escapeHtml(st.country||'?')} • ${st.bitrate||'?'}kbps</small></div>
+      <div class="station-actions">
+        <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav(${idx})">${isFav?'★':'☆'}</button>
+        <button onclick="playStation(${idx})">▶</button>
+      </div>`;
+    stationList.appendChild(item);
+  });
+}
+
+function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function switchTab(tab) {
+  state.currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  if (tab === 'all') renderStations(state.stations);
+  else if (tab === 'fav') renderStations(state.favorites);
+  else if (tab === 'hist') renderStations(state.history);
+}
+
+function resetFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('countrySelect').value = '';
+  loadTopStations();
+}
+
+function toggleFav(idx) {
+  const st = state.stations[idx]; if (!st) return;
+  const existing = state.favorites.findIndex(f => f.stationuuid === st.stationuuid);
+  if (existing >= 0) state.favorites.splice(existing, 1); else state.favorites.push(st);
+  localStorage.setItem('radioFav', JSON.stringify(state.favorites));
+  updateFavHistCounts();
+  if (state.currentTab === 'fav') renderStations(state.favorites); else renderStations(state.stations);
+}
+
+function addToHistory(st) {
+  state.history = state.history.filter(h => h.stationuuid !== st.stationuuid);
+  state.history.unshift(st); if (state.history.length > 20) state.history.pop();
+  localStorage.setItem('radioHist', JSON.stringify(state.history)); updateFavHistCounts();
+}
+
+function updateFavHistCounts() {
+  document.getElementById('favCount').textContent = state.favorites.length;
+  document.getElementById('histCount').textContent = state.history.length;
+}
+
+function playStation(idx) {
+  let st = state.currentTab === 'fav' ? state.favorites[idx] : (state.currentTab === 'hist' ? state.history[idx] : state.stations[idx]);
+  if (!st) return;
+  const streamUrl = st.url_resolved || st.url;
+  if (!streamUrl) return alert('Stream URL tidak tersedia.');
+  
+  state.currentStation = st; audio.src = streamUrl; audio.load();
+  tunerName.textContent = st.name;
+  tunerFreq.textContent = `${st.country||'?'} • ${st.bitrate||'?'}kbps`;
+  
+  initAudioGraph(); resumeAudioContext();
+  audio.play().then(() => {
+    state.isPlaying = true; playBtn.textContent = '⏸'; liveIndicator.classList.add('active');
+    addToHistory(st); if (!state.spectrumRAF) drawSpectrum();
+  }).catch(err => {
+    tunerFreq.textContent = '⚠ Gagal memutar: ' + err.message;
+    alert('Gagal memutar. Stream mungkin offline atau diblokir browser.');
+  });
+}
+
+function togglePlay() {
+  if (!state.currentStation) return alert('Pilih stasiun radio terlebih dahulu!');
+  initAudioGraph(); resumeAudioContext();
+  if (state.isPlaying) { audio.pause(); state.isPlaying = false; playBtn.textContent = '▶'; liveIndicator.classList.remove('active'); }
+  else { audio.play().then(() => { state.isPlaying = true; playBtn.textContent = '⏸'; liveIndicator.classList.add('active'); if (!state.spectrumRAF) drawSpectrum(); }).catch(() => reconnectRadio()); }
+}
+
+function stopRadio() {
+  audio.pause(); audio.src = ''; state.isPlaying = false; state.currentStation = null;
+  playBtn.textContent = '▶'; tunerName.textContent = '— Tidak ada siaran —';
+  tunerFreq.textContent = 'Siapkan stasiun untuk mulai'; liveIndicator.classList.remove('active');
+}
+
+function reconnectRadio() {
+  if (!state.currentStation) return;
+  audio.src = state.currentStation.url_resolved || state.currentStation.url; audio.load();
+  if (state.isPlaying) audio.play().catch(e => console.error(e));
+  tunerFreq.textContent = '↻ Menghubungkan ulang...';
+}
+
+function setVolume(val) {
+  audio.volume = val / 100;
+  if (state.gainNode) state.gainNode.gain.value = audio.volume;
+  muteBtn.textContent = val == 0 ? '🔇' : '🔊'; muteBtn.classList.toggle('muted', val == 0);
+}
+
+function toggleMute() {
+  state.isMuted = !state.isMuted; audio.muted = state.isMuted;
+  muteBtn.textContent = state.isMuted ? '🔇' : '🔊'; muteBtn.classList.toggle('muted', state.isMuted);
+}
+
+function setSleepTimer(minutes) {
+  clearTimeout(state.sleepTimeout); clearInterval(state.sleepInterval); state.sleepRemaining = 0;
+  document.querySelectorAll('#sleepTimerRow button').forEach((b, i) => b.classList.toggle('active', [0,15,30,45,60,90,120][i] === minutes));
+  if (minutes === 0) { document.getElementById('sleepDisplay').textContent = 'Sleep: OFF'; return; }
+  state.sleepRemaining = minutes * 60;
+  document.getElementById('sleepDisplay').textContent = `Sleep: ${formatTime(state.sleepRemaining)}`;
+  state.sleepInterval = setInterval(() => {
+    state.sleepRemaining--;
+    if (state.sleepRemaining <= 0) { clearInterval(state.sleepInterval); stopRadio(); document.getElementById('sleepDisplay').textContent = 'Sleep: Selesai ✓'; }
+    else document.getElementById('sleepDisplay').textContent = `Sleep: ${formatTime(state.sleepRemaining)}`;
+  }, 1000);
+}
+
+function formatTime(sec) { const m = Math.floor(sec / 60), s = sec % 60; return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }
+
+function setAlarm() {
+  const time = document.getElementById('alarmTime').value; if (!time) return alert('Pilih waktu alarm!');
+  if (!state.currentStation && state.history.length === 0) return alert('Pilih stasiun radio terlebih dahulu!');
+  clearTimeout(state.alarmTimeout); clearInterval(state.alarmInterval);
+  const [h, m] = time.split(':').map(Number); const daily = document.getElementById('alarmDaily').checked;
+  
+  function scheduleNext() {
+    const now = new Date(), target = new Date(); target.setHours(h, m, 0, 0);
+    if (target <= now) target.setDate(target.getDate() + 1);
+    state.alarmTimeout = setTimeout(() => {
+      const st = state.currentStation || state.history[0];
+      if (st) {
+        const idx = state.stations.findIndex(s => s.stationuuid === st.stationuuid);
+        if (idx >= 0) playStation(idx);
+        else { state.currentStation = st; audio.src = st.url_resolved || st.url; audio.play().catch(e=>console.error(e)); initAudioGraph(); resumeAudioContext(); tunerName.textContent = st.name; }
+      }
+      if (daily) scheduleNext();
+    }, target - now);
+    updateAlarmDisplay(target, daily);
+  }
+  scheduleNext();
+}
+
+function clearAlarm() { clearTimeout(state.alarmTimeout); clearInterval(state.alarmInterval); document.getElementById('alarmDisplay').textContent = 'Alarm: OFF'; }
+
+function updateAlarmDisplay(target, daily) {
+  const el = document.getElementById('alarmDisplay');
+  el.textContent = `Alarm: ${target.toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'})} ${daily ? '(Harian)' : '(Sekali)'}`;
+  state.alarmInterval = setInterval(() => {
+    const diff = target - new Date();
+    if (diff > 0) el.textContent = `Alarm: ${target.toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'})} — dalam ${formatTime(Math.floor(diff/1000))}`;
+  }, 1000);
+}
+
+function toggleMini() { document.body.classList.toggle('mini-mode'); }
+
+audio.addEventListener('playing', () => { tunerFreq.textContent = `${state.currentStation?.country||'?'} • Streaming...`; liveIndicator.classList.add('active'); });
+audio.addEventListener('waiting', () => { tunerFreq.textContent = '⏳ Buffering...'; });
+audio.addEventListener('error', () => { tunerFreq.textContent = '⚠ Error stream. Coba reconnect.'; liveIndicator.classList.remove('active'); });
+audio.addEventListener('pause', () => { if (!state.isPlaying) liveIndicator.classList.remove('active'); });
+
+init();
+</script>
+</body>
+</html>
