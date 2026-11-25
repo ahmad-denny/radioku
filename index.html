@@ -91,6 +91,26 @@ select{min-width:0;max-width:100%;text-overflow:ellipsis}
  .alarmrow{grid-template-columns:minmax(0,1fr) auto auto}
  .toast{bottom:calc(var(--dock,150px) + 8px)}
 }
+/* ===== Layar "Sedang Diputar" (klik mini player) ===== */
+.now{cursor:pointer}
+body.np-open{overflow:hidden}
+.np{position:fixed;inset:0;z-index:15;display:flex;flex-direction:column;overscroll-behavior:contain;background:radial-gradient(ellipse at 50% -10%,#1d4666 0,#0a1220 55%,#050810 100%);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.np[hidden]{display:none}
+.np-top{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;color:var(--muted);font-size:11px;letter-spacing:2px}
+.np-top button{width:44px;height:44px;border-radius:50%;padding:0;font-size:20px}
+.np-body{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:0 20px 18px;text-align:center;width:100%;max-width:560px;margin:0 auto}
+.np .np-cover{width:96px;height:96px;font-size:40px;border-radius:20px;box-shadow:0 0 28px #2ed9e944}
+.np h2{margin:0;font-size:21px;line-height:1.25;max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
+.np p{margin:0;color:var(--muted);font-size:13px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#npViz{width:100%;height:min(38vh,300px);background:#07111d;border:1px solid #1f3c4b;border-radius:16px}
+.np-note{font-size:11px;color:var(--muted)}
+.np .transport{gap:16px}
+.np .transport button{width:56px;height:56px;font-size:20px}
+.np .transport .big{width:72px;height:72px;font-size:26px}
+.np-vol{display:flex;align-items:center;gap:10px;width:100%;color:var(--muted)}
+.np-vol[hidden]{display:none}
+.np-vol input{flex:1;padding:0;min-width:0;accent-color:var(--cyan)}
+@media(max-height:480px){.np .np-cover,.np-vol,.np-note{display:none}.np-body{gap:8px}#npViz{height:34vh}.np .transport button{width:48px;height:48px}.np .transport .big{width:58px;height:58px}}
 </style></head><body data-view="all">
 <header><div class="brand"><div class="logo">📻</div><div><h1>RADIO PLAYER PRO</h1><p>Internet tuner · audio lab</p></div></div><button id="miniBtn" class="pill">▱ Mini Player</button></header>
 <main>
@@ -102,7 +122,7 @@ select{min-width:0;max-width:100%;text-overflow:ellipsis}
 <section class="panel"><div class="eyebrow">Automation</div><h3 style="margin:4px 0">Sleep Timer</h3><div class="timerrow"><select id="sleep"><option value="">Off</option><option value="15">15 menit</option><option value="30">30 menit</option><option value="45">45 menit</option><option value="60">60 menit</option><option value="90">90 menit</option><option value="120">120 menit</option></select><button id="sleepStart">Set Timer</button></div><div class="status" id="sleepStatus">Timer tidak aktif.</div><hr style="border-color:#26374e;margin:14px 0"><h3 style="margin:4px 0">Alarm Radio</h3><div class="alarmrow"><input type="time" id="alarmTime"><button id="alarmSet">Set Alarm</button><button id="alarmOff" title="Matikan alarm" aria-label="Matikan alarm">✕</button></div><label class="checkline"><input type="checkbox" id="alarmDaily"> Ulang setiap hari</label><label class="checkline"><input type="checkbox" id="wakeLock"> Layar tetap menyala</label><p style="font-size:11px;margin:6px 0 0">Alarm hanya berbunyi jika halaman ini tetap terbuka. Aktifkan &ldquo;Layar tetap menyala&rdquo; dan biarkan HP di charger.</p><div class="status" id="alarmStatus">Alarm tidak aktif.</div></section>
 </aside></div>
 </main>
-<div class="bottomplayer"><div class="playerinner"><div class="now"><div class="cover" id="nowCover">📻</div><div class="nowtext"><strong id="nowTitle">Pilih radio untuk mulai</strong><small id="nowMeta">Radio Player PRO</small></div></div><div class="transport"><button id="prev" title="Sebelumnya" aria-label="Station sebelumnya">⏮</button><button id="stop" title="Stop">■</button><button class="big" id="play" aria-label="Play / Jeda">▶</button><button id="retry" title="Sambung ulang">↻</button><button id="next" title="Berikutnya" aria-label="Station berikutnya">⏭</button></div><div class="rightcontrols">🔊<input id="volume" type="range" min="0" max="1" step=".01" value=".8"><button id="mute">♪</button></div></div><nav class="mnav" id="mnav"><button data-view="all" class="on"><i>📻</i><span>Stasiun</span></button><button data-view="fav"><i>♥</i><span>Favorit</span></button><button data-view="recent"><i>🕘</i><span>Riwayat</span></button><button data-view="tools"><i>🎛</i><span>Alat</span></button></nav></div><div class="toast" id="toast"></div>
+<div class="bottomplayer"><div class="playerinner"><div class="now" id="nowArea" role="button" tabindex="0" aria-label="Buka layar pemutar"><div class="cover" id="nowCover">📻</div><div class="nowtext"><strong id="nowTitle">Pilih radio untuk mulai</strong><small id="nowMeta">Radio Player PRO</small></div></div><div class="transport"><button id="prev" title="Sebelumnya" aria-label="Station sebelumnya">⏮</button><button id="stop" title="Stop">■</button><button class="big" id="play" aria-label="Play / Jeda">▶</button><button id="retry" title="Sambung ulang">↻</button><button id="next" title="Berikutnya" aria-label="Station berikutnya">⏭</button></div><div class="rightcontrols">🔊<input id="volume" type="range" min="0" max="1" step=".01" value=".8"><button id="mute">♪</button></div></div><nav class="mnav" id="mnav"><button data-view="all" class="on"><i>📻</i><span>Stasiun</span></button><button data-view="fav"><i>♥</i><span>Favorit</span></button><button data-view="recent"><i>🕘</i><span>Riwayat</span></button><button data-view="tools"><i>🎛</i><span>Alat</span></button></nav></div><section class="np" id="np" hidden aria-label="Sedang diputar"><div class="np-top"><button id="npClose" aria-label="Tutup">⌄</button><span>SEDANG DIPUTAR</span><span style="width:44px"></span></div><div class="np-body"><div class="cover np-cover" id="npCover">📻</div><h2 id="npTitle">Pilih radio untuk mulai</h2><p id="npMeta">Radio Player PRO</p><canvas id="npViz" width="640" height="320"></canvas><small class="np-note" id="npNote"></small><div class="transport"><button id="npPrev" aria-label="Station sebelumnya">⏮</button><button class="big" id="npPlay" aria-label="Play / Jeda">▶</button><button id="npNext" aria-label="Station berikutnya">⏭</button></div><div class="np-vol">🔊<input id="npVol" type="range" min="0" max="1" step=".01" value=".8" aria-label="Volume"></div></div></section><div class="toast" id="toast"></div>
 <script>
 const $=x=>document.querySelector(x);
 const PAGE=60,coarse=matchMedia("(pointer:coarse)").matches;
@@ -110,6 +130,7 @@ const jget=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v??d}c
 const jset=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 let audio=new Audio(),muted=false,srcNode=null,inputNode=null,ctx=null,analyser=null,eqNodes=[],eqActive=false,vizRunning=false;
 let stations=[],current=null,view="all",geo=null,limit=PAGE,curList=[],reqId=0,hostIdx=0;
+let npOpen=false,simPhase=0,buffering=false,vizData=null;
 let wantPlay=false,retryN=0,retryT=null,stallT=null,stateTxt="",metaTxt="",toastT=null,sleepEnd=0,alarm=null,wakeSentinel=null;
 let fav=jget("rpro_fav",[]),hist=jget("rpro_hist",[]),saved=jget("rpro_saved",{}),eqOn=jget("rpro_eq",!coarse);
 const corsCache={};
@@ -169,7 +190,8 @@ function favorite(id){const s=lookup(id);fav=fav.includes(id)?fav.filter(x=>x!==
 function share(id){const s=lookup(id);if(!s)return;if(navigator.share){navigator.share({title:s.name,text:s.name,url:s.url}).catch(()=>{});return}navigator.clipboard?.writeText(`${s.name}\n${s.url}`).then(()=>toast("Link radio disalin")).catch(()=>toast(s.url))}
 
 /* ---------- status & media session (kontrol layar kunci) ---------- */
-function refreshMeta(){$("#nowMeta").textContent=[stateTxt,metaTxt].filter(Boolean).join(" · ")||"Radio Player PRO"}
+function refreshMeta(){const t=[stateTxt,metaTxt].filter(Boolean).join(" · ")||"Radio Player PRO";$("#nowMeta").textContent=t;$("#npMeta").textContent=t}
+function setPlayIcon(t){$("#play").textContent=t;$("#npPlay").textContent=t}
 function setState(t){stateTxt=t;refreshMeta()}
 function ms(st){if("mediaSession" in navigator)navigator.mediaSession.playbackState=st}
 function updateMedia(){
@@ -185,17 +207,17 @@ function setupMediaKeys(){
 }
 function updatePlayer(){
  if(!current)return;
- $("#nowTitle").textContent=current.name;
+ $("#nowTitle").textContent=$("#npTitle").textContent=current.name;
  metaTxt=[current.city,current.country,(current.genre||"").split(",")[0]].filter(Boolean).join(" · ");refreshMeta();
  $("#tunerTitle").textContent=current.name;$("#tunerSubtitle").textContent=[current.city,current.country].filter(Boolean).join(" / ")||"Internet radio";
- $("#nowCover").innerHTML=$("#tunerCover").innerHTML=current.logo?`<img referrerpolicy="no-referrer" src="${esc(current.logo)}" onerror="this.parentElement.textContent='📻'">`:"📻";
+ $("#nowCover").innerHTML=$("#tunerCover").innerHTML=$("#npCover").innerHTML=current.logo?`<img referrerpolicy="no-referrer" src="${esc(current.logo)}" onerror="this.parentElement.textContent='📻'">`:"📻";
  $("#freq").textContent="LIVE";updateMedia();
 }
 
 /* ---------- pemutaran ---------- */
 function streamUrl(s){return location.protocol==="https:"&&/^http:/i.test(s.url)?s.url.replace(/^http:/i,"https:"):s.url}
 function release(a){if(!a)return;a.onplay=a.onpause=a.onplaying=a.onwaiting=a.onended=a.onerror=null;try{a.pause();a.removeAttribute("src");a.load()}catch(e){}}
-function eqInfo(cors){$("#eqNote").textContent=!eqOn?"EQ dimatikan: pemutaran langsung, paling hemat baterai dan stabil saat layar mati.":cors?"EQ & spectrum aktif. Audio diproses di browser.":"Stream ini tidak mengizinkan CORS: suara diputar langsung, EQ & spectrum tidak aktif untuk station ini."}
+function eqInfo(cors){refreshNpNote();$("#eqNote").textContent=!eqOn?"EQ dimatikan: pemutaran langsung, paling hemat baterai dan stabil saat layar mati.":cors?"EQ & spectrum aktif. Audio diproses di browser.":"Stream ini tidak mengizinkan CORS: suara diputar langsung, EQ & spectrum tidak aktif untuk station ini."}
 function begin(s){retryN=0;return startStream(s)}
 function userPause(){wantPlay=false;clearTimeout(retryT);clearTimeout(stallT);retryN=0;audio.pause()}
 function reconnect(){
@@ -212,11 +234,11 @@ function startStream(s,cors){
  release(audio);
  if(srcNode){try{srcNode.disconnect()}catch(e){}srcNode=null}
  eqActive=false;
- const a=new Audio();a.preload="none";if(cors)a.crossOrigin="anonymous";a.volume=+$("#volume").value;a.muted=muted;audio=a;
- a.onplay=()=>{$("#play").textContent="❚❚";ms("playing")};
- a.onpause=()=>{$("#play").textContent="▶";eqActive=false;setState("Jeda");ms("paused");render()};
- a.onwaiting=()=>{if(a!==audio)return;setState("Buffering…");clearTimeout(stallT);stallT=setTimeout(()=>{if(a===audio&&wantPlay)reconnect()},12000)};
- a.onplaying=()=>{if(a!==audio)return;clearTimeout(stallT);retryN=0;a._ok=true;if(eqOn)corsCache[s.id]=cors;eqActive=cors&&!!analyser;setState("● LIVE");eqInfo(cors);startViz();render()};
+ buffering=true;const a=new Audio();a.preload="none";if(cors)a.crossOrigin="anonymous";a.volume=+$("#volume").value;a.muted=muted;audio=a;
+ a.onplay=()=>{setPlayIcon("❚❚");ms("playing")};
+ a.onpause=()=>{setPlayIcon("▶");eqActive=false;setState("Jeda");ms("paused");render()};
+ a.onwaiting=()=>{if(a!==audio)return;buffering=true;setState("Buffering…");clearTimeout(stallT);stallT=setTimeout(()=>{if(a===audio&&wantPlay)reconnect()},12000)};
+ a.onplaying=()=>{if(a!==audio)return;buffering=false;clearTimeout(stallT);retryN=0;a._ok=true;if(eqOn)corsCache[s.id]=cors;eqActive=cors&&!!analyser;setState("● LIVE");eqInfo(cors);startViz();render()};
  a.onended=()=>{if(a===audio&&wantPlay)reconnect()};
  a.onerror=()=>{if(a!==audio||(cors&&!a._ok))return;if(a._ok&&wantPlay)reconnect();else{setState("Gagal");toast("Stream error: server mati, format unsupported, atau koneksi ditolak.")}};
  if(ctx){eqOn?ctx.resume():ctx.suspend()}
@@ -243,16 +265,20 @@ function setupAudio(){
   analyser=ctx.createAnalyser();analyser.fftSize=256;prev.connect(analyser);analyser.connect(ctx.destination)
  }catch(e){ctx=null;analyser=null;eqOn=false;$("#eqOn").checked=false;$("#eqNote").textContent="Browser tidak mendukung audio processing; streaming biasa tetap tersedia."}
 }
-function idleViz(){const c=$("#visualizer"),g=c.getContext("2d");g.fillStyle="#07111d";g.fillRect(0,0,c.width,c.height);g.strokeStyle="#244557";g.beginPath();g.moveTo(0,c.height/2);g.lineTo(c.width,c.height/2);g.stroke()}
+function idleViz(){["#visualizer","#npViz"].forEach(q=>{const c=$(q),g=c.getContext("2d");g.fillStyle="#07111d";g.fillRect(0,0,c.width,c.height);g.strokeStyle="#244557";g.beginPath();g.moveTo(0,c.height/2);g.lineTo(c.width,c.height/2);g.stroke()})}
+function vizNeeded(){return !document.hidden&&((eqActive&&!!analyser)||(npOpen&&!audio.paused&&!buffering))}
+function vizVals(real){const v=new Array(48);for(let i=0;i<48;i++)v[i]=real?vizData[i*2]/255:Math.max(.04,Math.min(1,(.42+.3*Math.sin(simPhase*1.7+i*.55)+.2*Math.sin(simPhase*2.9+i*1.3))*(1-i/90)));return v}
+function drawBars(c,v){const g=c.getContext("2d");g.fillStyle="#07111d";g.fillRect(0,0,c.width,c.height);const w=c.width/48;for(let i=0;i<48;i++){const h=v[i]*c.height*.85;g.fillStyle=`hsl(${175-i*1.7} 85% ${40+v[i]*30}%)`;g.fillRect(i*w+2,c.height-h,w-4,h)}}
 function startViz(){
- if(vizRunning||!analyser||!eqActive||document.hidden)return;vizRunning=true;
- const c=$("#visualizer"),g=c.getContext("2d"),data=new Uint8Array(analyser.frequencyBinCount);
+ if(vizRunning||!vizNeeded())return;vizRunning=true;
  (function frame(){
-  if(!eqActive||document.hidden){vizRunning=false;idleViz();return}
-  if(!c.offsetParent){setTimeout(frame,400);return}
-  requestAnimationFrame(frame);analyser.getByteFrequencyData(data);
-  g.fillStyle="#07111d";g.fillRect(0,0,c.width,c.height);const w=c.width/48;
-  for(let i=0;i<48;i++){const v=data[i*2]/255,h=v*c.height*.85;g.fillStyle=`hsl(${175-i*1.7} 85% ${40+v*30}%)`;g.fillRect(i*w+2,c.height-h,w-4,h)}
+  if(!vizNeeded()){vizRunning=false;idleViz();return}
+  const vis=[$("#visualizer"),$("#npViz")].filter(c=>c.offsetParent);
+  if(!vis.length){setTimeout(frame,400);return}
+  requestAnimationFrame(frame);
+  const real=!!(eqActive&&analyser);
+  if(real){if(!vizData||vizData.length!==analyser.frequencyBinCount)vizData=new Uint8Array(analyser.frequencyBinCount);analyser.getByteFrequencyData(vizData)}
+  simPhase+=.045;const v=vizVals(real);vis.forEach(c=>drawBars(c,v))
  })()
 }
 const presets={flat:[0,0,0,0,0,0,0,0,0,0],bass:[7,5,4,2,0,0,0,-1,-1,-1],treble:[-2,-1,0,0,0,2,4,5,5,5],vocal:[-3,-2,0,2,3,3,1,0,-1,-2],rock:[4,3,1,-2,-1,2,4,3,2,2],jazz:[3,2,1,0,-2,-1,2,3,3,2]};
@@ -293,8 +319,9 @@ $("#gps").onclick=()=>{
 $("#play").onclick=()=>{if(!current)return toast("Pilih radio dahulu.");audio.paused?begin(current):userPause()};
 $("#stop").onclick=userPause;$("#prev").onclick=()=>step(-1);$("#next").onclick=()=>step(1);
 $("#retry").onclick=()=>{if(current){delete corsCache[current.id];begin(current)}};
-$("#volume").value=jget("rpro_vol",.8);
-$("#volume").oninput=()=>{audio.volume=+$("#volume").value;jset("rpro_vol",+$("#volume").value)};
+$("#volume").value=$("#npVol").value=jget("rpro_vol",.8);
+const setVol=v=>{v=+v;$("#volume").value=$("#npVol").value=v;audio.volume=v;jset("rpro_vol",v)};
+$("#volume").oninput=e=>setVol(e.target.value);$("#npVol").oninput=e=>setVol(e.target.value);
 $("#mute").onclick=()=>{muted=!muted;audio.muted=muted;$("#mute").textContent=muted?"🔇":"♪"};
 $("#eqOn").checked=eqOn;
 $("#eqOn").onchange=e=>{eqOn=e.target.checked;jset("rpro_eq",eqOn);if(current&&!audio.paused)begin(current);else eqInfo(eqOn)};
@@ -306,6 +333,15 @@ $("#miniBtn").onclick=()=>{document.body.classList.toggle("minimized");$("#miniB
 setInterval(tickSleep,1000);setInterval(checkAlarm,10000);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)return;startViz();tickSleep();checkAlarm();if($("#wakeLock").checked&&!wakeSentinel)lockScreen()});
 addEventListener("online",()=>{if(wantPlay&&current&&(audio.paused||audio.readyState<3)){retryN=0;startStream(current)}});
+
+/* ---------- layar Sedang Diputar ---------- */
+function refreshNpNote(){$("#npNote").textContent=eqActive&&analyser?"Spektrum audio langsung":eqOn?"Visual simulasi (stream ini tidak mengizinkan CORS).":"Visual simulasi. Aktifkan EQ & spectrum di tab Alat untuk spektrum asli."}
+function openNp(){if(!current)return toast("Pilih radio dahulu.");npOpen=true;$("#np").hidden=false;document.body.classList.add("np-open");$("#npPlay").textContent=$("#play").textContent;try{history.pushState({np:1},"")}catch(e){}refreshNpNote();startViz()}
+function closeNp(fromPop){if(!npOpen)return;npOpen=false;$("#np").hidden=true;document.body.classList.remove("np-open");if(!fromPop){try{if(history.state&&history.state.np)history.back()}catch(e){}}}
+$("#nowArea").onclick=openNp;$("#nowArea").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openNp()}};
+$("#npClose").onclick=()=>closeNp();$("#npPlay").onclick=()=>$("#play").click();$("#npPrev").onclick=()=>step(-1);$("#npNext").onclick=()=>step(1);
+addEventListener("popstate",()=>closeNp(true));document.addEventListener("keydown",e=>{if(e.key==="Escape")closeNp()});
+if(/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1))$(".np-vol").hidden=true;
 
 /* ---------- init ---------- */
 $("#city").value=jget("rpro_city","Medan");
