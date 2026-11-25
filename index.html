@@ -72,6 +72,25 @@ header{padding-top:calc(12px + env(safe-area-inset-top));padding-left:max(16px,c
  main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
  .toast{bottom:calc(100px + env(safe-area-inset-bottom))}
 }
+/* ===== Anti geser horizontal + header & footer tetap ===== */
+html{overflow-x:hidden}
+body{overflow-x:clip;max-width:100%}
+select{min-width:0;max-width:100%;text-overflow:ellipsis}
+@media(max-width:980px){
+ .topgrid,.layout{grid-template-columns:minmax(0,1fr)}
+ .panel,.tuner,.leftcol,.sidebar>*{min-width:0;max-width:100%}
+}
+@media(max-width:650px){
+ .searchline select{flex:1 1 100%;width:100%}
+ header{position:fixed;top:0;left:0;right:0;width:100%;z-index:9}
+ main{padding-top:calc(var(--hdr,64px) + 12px);padding-bottom:calc(var(--dock,150px) + 12px)}
+ .bottomplayer{left:0;right:0;width:100%}
+ .playerinner>*{min-width:0}
+ .eq{grid-template-columns:repeat(10,minmax(0,1fr))}.eqband input{width:min(28px,100%)}
+ .timerrow{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .alarmrow{grid-template-columns:minmax(0,1fr) auto auto}
+ .toast{bottom:calc(var(--dock,150px) + 8px)}
+}
 </style></head><body data-view="all">
 <header><div class="brand"><div class="logo">📻</div><div><h1>RADIO PLAYER PRO</h1><p>Internet tuner · audio lab</p></div></div><button id="miniBtn" class="pill">▱ Mini Player</button></header>
 <main>
@@ -292,5 +311,8 @@ addEventListener("online",()=>{if(wantPlay&&current&&(audio.paused||audio.readyS
 $("#city").value=jget("rpro_city","Medan");
 const lastId=jget("rpro_last",null);if(lastId&&saved[lastId]){current=saved[lastId];updatePlayer()}
 const a0=jget("rpro_alarm",null);if(a0&&a0.time){alarm={...a0,fired:false};$("#alarmTime").value=a0.time;$("#alarmDaily").checked=!!a0.daily;$("#alarmStatus").textContent=`Alarm aktif: ${a0.time}${a0.daily?" · setiap hari":""}`}
+function syncBars(){const r=document.documentElement.style;r.setProperty("--hdr",$("header").offsetHeight+"px");r.setProperty("--dock",$(".bottomplayer").offsetHeight+"px")}
+addEventListener("resize",syncBars);addEventListener("orientationchange",syncBars);
+if(window.ResizeObserver){const ro=new ResizeObserver(syncBars);ro.observe($("header"));ro.observe($(".bottomplayer"))}syncBars();
 buildEQ();setupMediaKeys();idleViz();eqInfo(eqOn);loadCountries();byCity();
 </script></body></html>
